@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import bgVideo from "../assets/bgVideo.mp4";
-import {useNavigate} from 'react-router-dom'
+import io from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 import { SocketContext } from "../context/SocketContext";
 function Landing() {
   const navigate = useNavigate();
@@ -18,21 +19,19 @@ function Landing() {
   };
 
   const handelNewUser = async () => {
+    const newSocket = io("http://localhost:3001"); // Update this URL to match your server URL
+    setSocket(newSocket);
     try {
-      socket.on("message", (message) => {
-        console.log("Message from server:", message);
-      });
-
-      socket.emit("join_room", user.roomNo);
-
       setUser({
         username: "",
         roomNo: "",
       });
 
-      navigate(`/${user.roomNo}`,{state:{
-        name:user.username
-      }});
+      navigate(`/${user.roomNo}`, {
+        state: {
+          name: user.username,
+        },
+      });
     } catch (error) {
       console.log(error);
     }
