@@ -24,19 +24,20 @@ app.use(cors({ origin: "http://localhost:5173" })); // Update this to match your
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
   // this will join to some room here
-  socket.on("join_room", (data) => {
-    socket.join(data);
-    console.log(`User ID :- ${socket.id} joined room : ${data}`);
+  socket.on("join_room", ({roomid , name}) => {
+    // THIS IS JOINING THE ROOM WITH ID
+    socket.join(roomid);
+    // sending the name to other that the user has joined
+    socket.to(roomid).emit('user_joined',{name});
+    console.log(`User ID :- ${socket.id} joined room : ${roomid}`);
   });
 
   socket.on("send_message", (data) => {
-    console.log("send message data ", data);
     socket.to(data.room).emit("receive_message",data);
-    console.log('its comming');
   });
 
 
-  socket.emit('message',"this is from the server");
+ 
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
