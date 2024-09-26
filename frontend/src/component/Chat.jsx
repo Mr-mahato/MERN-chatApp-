@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState, useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { BsSendFill } from "react-icons/bs";
 import { SocketContext } from "../context/SocketContext";
+import Header from "./Header";
+
 function Chat() {
   const { roomid } = useParams();
   const [currentMssg, setCurrentMssg] = useState("");
@@ -13,8 +15,7 @@ function Chat() {
 
   useEffect(() => {
     if (socket) {
-      // sending roomid and name of user
-      socket.emit("join_room", { roomid, name: state.name });
+      socket.emit("subscribe", { roomid, name: state.name });
     }
   }, [socket, roomid, state.name]);
 
@@ -31,11 +32,13 @@ function Chat() {
         { message: `${data.name} has joined the chat`, system: true },
       ]);
     };
+
     if (socket) {
-      socket.on("receive_message", handleReceiveMsg);
       socket.on("user_joined", handelUserJoined);
+      socket.on("receive_message", handleReceiveMsg);
     }
 
+    // clean up function to free the memory
     return () => {
       if (socket) {
         socket.off("receive_message", handleReceiveMsg);
@@ -54,14 +57,14 @@ function Chat() {
       ).getMinutes()}`,
     };
     await socket.emit("send_message", data);
-    // this make sure ki only the sender is apending the message to the arraylist
+    // updating the message of own room
     setMessageList((list) => [...list, data]);
 
     setCurrentMssg("");
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
   };
 
   useEffect(() => {
@@ -71,7 +74,7 @@ function Chat() {
   const messageList = list.map((val, ind) => {
     if (val.system) {
       return (
-        <h1 className="text-2xl text-neutral-100 py-1 bg-neutral-600 text-center w-[30%] rounded-md mx-auto">
+        <h1 className="text-2xl text-neutral-100 py-2 w-full sm:w-[50%] md:w-[40%] lg:w-[30%] bg-neutral-600 text-center  rounded-md mx-auto">
           {val.message}
         </h1>
       );
@@ -96,45 +99,42 @@ function Chat() {
   });
 
   return (
-    <div className="bg-neutral-500 flex flex-col w-full min-h-screen justify-between">
-      <div
-        className="bg-neutral-100 min-h-[90vh]"
-        style={{
-          backgroundImage: `url('https://w0.peakpx.com/wallpaper/818/148/HD-wallpaper-whatsapp-background-cool-dark-green-new-theme-whatsapp.jpg')`,
-        }}
-      >
-        <div
-          className="w-[90%] z-20 mx-auto py-2 overflow-y-auto"
-          style={{ maxHeight: "90vh" }}
-        >
-          {messageList}
-          <div ref={messagesEndRef} />
-        </div>
+    <div
+      className="bg-neutral-500 flex bg-fixed flex-col w-full min-h-screen justify-between"
+      style={{
+        backgroundImage: `url('https://w0.peakpx.com/wallpaper/818/148/HD-wallpaper-whatsapp-background-cool-dark-green-new-theme-whatsapp.jpg')`,
+      }}
+    >
+      {/* header here */}
+      <Header list={list} setMessageList={setMessageList} state={state} />
 
-        {/* this is here to have littel dark bg */}
-        <div className="fixed inset-0 bottom-14 bg-black/30"></div>
+      <div className="z-20  w-full mx-auto py-2 overflow-y-auto px-3">
+        {messageList}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* input box for typing message */}
-      <div className="px-2 flex gap-2  py-2">
-        <input
-          type="text"
-          placeholder="Enter your mssg...."
-          onKeyDown={(e) => {
-            if (e.key == "Enter") {
-              handelMessageSent(e);
-            }
-          }}
-          value={currentMssg}
-          onChange={(e) => setCurrentMssg(e.target.value)}
-          className="p-3 outline-none focus:ring-2 ring-green-200 w-full rounded-md text-neutral-600 bg-neutral-200 "
-        />
-        <button
-          onClick={(e) => handelMessageSent(e)}
-          className="bg-purple-400 px-4 py-2 rounded-md"
-        >
-          <BsSendFill />
-        </button>
+      <div className="sticky w-full bottom-0 z-20 bg-neutral-600">
+        <div className="px-2 bg-fixed flex gap-2  py-2">
+          <input
+            type="text"
+            placeholder="Enter your mssg...."
+            onKeyDown={(e) => {
+              if (e.key == "Enter") {
+                handelMessageSent(e);
+              }
+            }}
+            value={currentMssg}
+            onChange={(e) => setCurrentMssg(e.target.value)}
+            className="p-3 outline-none focus:ring-2 ring-green-200 w-full rounded-md text-neutral-600 bg-neutral-200 "
+          />
+          <button
+            onClick={(e) => handelMessageSent(e)}
+            className="bg-purple-400 px-4 py-2 rounded-md"
+          >
+            <BsSendFill />
+          </button>
+        </div>
       </div>
     </div>
   );
