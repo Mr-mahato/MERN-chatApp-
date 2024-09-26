@@ -19,7 +19,8 @@ function Landing() {
   };
 
   const handelNewUser = async () => {
-    const newSocket = io("http://localhost:3001"); // Update this URL to match your server URL
+    // this is my client and will match to the server url
+    const newSocket = io("http://localhost:3001");
     setSocket(newSocket);
     try {
       setUser({
