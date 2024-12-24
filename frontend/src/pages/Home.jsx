@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageCircle, Users, Zap } from "lucide-react";
-import UserRegistration from '../models/UserRegistration'
+import UserRegistration from "../models/UserRegistration";
+import Login from "../component/Register/Login";
+import Signup from "../component/Register/Signup";
 function Home() {
   const [isOpenRegistration, setIsOpenRegistration] = useState(false);
+  const [mode, setMode] = useState(true);
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1">
@@ -20,13 +23,28 @@ function Home() {
                 </p>
               </div>
               <div className="space-x-4">
-                <button onClick={()=>setIsOpenRegistration(true)} onClose={()=>setIsOpenRegistration(false)} className="bg-black rounded-md text-white px-3 py-2 hover:bg-black/90">
+                <button
+                  onClick={() => setIsOpenRegistration(true)}
+                  onClose={() => setIsOpenRegistration(false)}
+                  className="bg-black rounded-md text-white px-3 py-2 hover:bg-black/90"
+                >
                   Get Started
                 </button>
               </div>
-              <UserRegistration isOpenRegistration={isOpenRegistration} onClose={()=>setIsOpenRegistration(false)}/>
             </div>
           </div>
+          <UserRegistration
+            isOpenRegistration={isOpenRegistration}
+            onClose={() => setIsOpenRegistration(false)}
+          >
+            <div className="h-fit   bg-white">
+              {mode ? (
+                <Login setMode={setMode} />
+              ) : (
+                <Signup setMode={setMode} />
+              )}
+            </div>
+          </UserRegistration>
         </section>
         <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100 ">
           <div className="container mx-auto px-4 md:px-6">
