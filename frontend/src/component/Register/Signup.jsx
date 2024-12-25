@@ -13,7 +13,7 @@ function Signup({ setMode }) {
             <p
               onClick={() => setMode(true)}
               href="/login"
-              className="font-medium text-blue-600 hover:text-blue-500"
+              className="font-medium cursor-pointer text-blue-600 hover:text-blue-500"
             >
               sign in to your existing account
             </p>

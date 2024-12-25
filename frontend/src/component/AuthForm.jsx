@@ -1,58 +1,81 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../config/Firebase";
+import { CircleAlert } from "lucide-react";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
-function AuthForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+function AuthForm({ mode }) {
+  const [user, setUser] = useState({});
   const [error, setError] = useState("");
-  const router = useRouter();
+  const navigate = useNavigate();
+  const googleProvider = new GoogleAuthProvider();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    // Handle email/password authentication here
+    console.log(user);
+  };
 
-    if (mode === "login") {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (result?.error) {
-        setError("Invalid email or password");
-      } else {
-        router.push("/dashboard");
-      }
-    } else {
-      // Here you would typically call your API to create a new user
-      // For this example, we'll just simulate a successful signup
-      console.log("Signup with", email, password);
-      router.push("/dashboard");
+  const handleGoogleSignIn = async () => {
+    try {
+      const res = await signInWithPopup(auth, googleProvider);
+      console.log(res);
+      navigate("/"); // Redirect to home page or any other page after successful login
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
     }
   };
 
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" });
-  };
-
   return (
-    <div className="w-full max-w-md space-y-8">
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="w-full  gap-4 ">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="email">Email address</Label>
-          <Input
+          {mode == "signup" && (
+            <>
+              <label htmlFor="email" className="font-semibold">
+                Full Name
+              </label>
+              <br />
+              <input
+                id="fullname"
+                name="fullname"
+                placeholder="Enter your name"
+                type="text"
+                autoComplete="name"
+                required
+                value={user.fullname}
+                onChange={(e) => {
+                  setUser({ ...user, [e.target.name]: e.target.value });
+                }}
+                className="border outline-none p-2 w-full rounded-md"
+              />
+            </>
+          )}
+          <label htmlFor="email" className="font-semibold">
+            Email address
+          </label>
+          <br />
+          <input
             id="email"
             name="email"
+            placeholder="Enter your email"
             type="email"
             autoComplete="email"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1"
+            value={user.email}
+            onChange={(e) => {
+              setUser({ ...user, [e.target.name]: e.target.value });
+            }}
+            className="border outline-none p-2 w-full rounded-md"
           />
         </div>
         <div>
-          <Label htmlFor="password">Password</Label>
-          <Input
+          <label className="font-semibold " htmlFor="password">
+            Password
+          </label>
+          <br />
+          <input
             id="password"
             name="password"
             type="password"
@@ -60,21 +83,25 @@ function AuthForm() {
               mode === "login" ? "current-password" : "new-password"
             }
             required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1"
+            value={user.password}
+            placeholder="Enter your password"
+            onChange={(e) => {
+              setUser({ ...user, [e.target.name]: e.target.value });
+            }}
+            className="border outline-none p-2 w-full rounded-md"
           />
         </div>
         {error && (
           <div className="text-red-500 flex items-center">
-            <AlertCircle className="w-4 h-4 mr-2" />
+            <CircleAlert className="w-4 h-4 mr-2" />
             <span>{error}</span>
           </div>
         )}
-        <Button type="submit" className="w-full">
+        <button className="w-full bg-gray-800 text-white p-2 rounded-md active:bg-gray-900">
           {mode === "login" ? "Sign in" : "Sign up"}
-        </Button>
+        </button>
       </form>
+
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-300"></div>
@@ -83,7 +110,10 @@ function AuthForm() {
           <span className="px-2 bg-white text-gray-500">Or continue with</span>
         </div>
       </div>
-      <Button onClick={handleGoogleSignIn} variant="outline" className="w-full">
+      <button
+        onClick={handleGoogleSignIn}
+        className="w-full border flex justify-center items-center p-2 rounded-md hover:bg-neutral-100"
+      >
         <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
           <path
             fill="currentColor"
@@ -91,7 +121,7 @@ function AuthForm() {
           />
         </svg>
         Sign in with Google
-      </Button>
+      </button>
     </div>
   );
 }

@@ -1,15 +1,15 @@
 import React from "react";
-import Landing from "./component/Landing";
+import Landing from "./Layout/Landing";
 import { Routes, Route } from "react-router-dom";
 import Chat from "./component/Chat";
+import Home from "./pages/Home";
 function App() {
   return (
     <div className="w-full">
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/:roomid" element={<Chat />} />
-
-        <Route path="*" element={<h1>PAGE NOT FOUND</h1>} />
+        <Route element={<Landing />}>
+          <Route path="/" element={<Home />} />
+        </Route>
       </Routes>
     </div>
   );
