@@ -37,7 +37,7 @@ function Home() {
             isOpenRegistration={isOpenRegistration}
             onClose={() => setIsOpenRegistration(false)}
           >
-            <div className="h-fit   bg-white">
+            <div className="h-fit    bg-white">
               {mode ? (
                 <Login setMode={setMode} />
               ) : (

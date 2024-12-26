@@ -5,50 +5,30 @@ const { createServer } = require("http");
 const app = express();
 const server = createServer(app);
 
-// this is to allow the server to have cors with the client
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
   },
 });
 
-require("dotenv").config();
-const port = process.env.PORT || 3001;
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
-app.use(cors({ origin: "http://localhost:5173" }));
-
-// socket connection started
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-  // this will join to some room here
-  socket.on("subscribe", ({ roomid, name }) => {
-    // THIS IS JOINING THE ROOM WITH ID
-    socket.join(roomid);
-    // sending the name to other that the user has joined
-    socket.to(roomid).emit("user_joined", { name });
-    console.log(`User ID :- ${socket.id} joined room : ${roomid}`);
+  console.log("Connection established", socket.id);
+  // socket disconnection time
+  socket.on("disconnect", () => {
+    console.log("Disconnected: ", socket.id);
   });
-
-  socket.on("send_message", (data) => {
-    // sending the message to others room
-
-    socket.to(data.room).emit("receive_message", data);
-  });
-
-  // lets see dummy message
-
-  socket.on("end", () => {
-    console.log("User disconnected with button", socket.id);
-    socket.disconnect();
-  });
-
-  socket.on("error", (err) => {
-    console.log("Socket error:", err);
+  // user sending some message to the socket
+  socket.on("userMessage", (mssg) => {
+    console.log(mssg);
+    io.emit("chat_message", mssg);
   });
 });
 
-server.listen(port, (err) => {
-  if (err) console.log(err);
-  console.log(`Server is alive: http://localhost:${port}`);
+server.listen(3001, (err) => {
+  if (err) console.log("Error found", err);
+  console.log("Your server is running like usain bolt....");
 });

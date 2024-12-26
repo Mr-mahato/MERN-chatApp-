@@ -15,7 +15,9 @@ function UserRegistration({ isOpenRegistration, onClose, children }) {
       onClick={handleModelClose}
       className="fixed isUserRegister top-0 w-full h-full  flex justify-center items-center bg-black/50"
     >
-      <div className=" w-[34%] p-4 rounded-md    bg-white">{children}</div>
+      <div className=" md:w-[34%] w-[55%] p-4 rounded-md    bg-white">
+        {children}
+      </div>
     </div>
   );
 }

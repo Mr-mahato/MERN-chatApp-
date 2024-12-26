@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../config/Firebase";
 import { CircleAlert } from "lucide-react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { useAuth } from "../context/AuthContext";
 
 function AuthForm({ mode }) {
   const [user, setUser] = useState({});
@@ -10,10 +11,14 @@ function AuthForm({ mode }) {
   const navigate = useNavigate();
   const googleProvider = new GoogleAuthProvider();
 
+  const { userHC, setUserHC } = useAuth();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Handle email/password authentication here
-    console.log(user);
+    setUserHC(user);
+    navigate("/chat");
+    console.log(userHC);
   };
 
   const handleGoogleSignIn = async () => {

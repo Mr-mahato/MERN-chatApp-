@@ -1,7 +1,7 @@
 import React from "react";
 import Landing from "./Layout/Landing";
 import { Routes, Route } from "react-router-dom";
-import Chat from "./component/Chat";
+import Chat from "./pages/Chat";
 import Home from "./pages/Home";
 function App() {
   return (
@@ -9,6 +9,7 @@ function App() {
       <Routes>
         <Route element={<Landing />}>
           <Route path="/" element={<Home />} />
+          <Route path="/chat" element={<Chat />} />
         </Route>
       </Routes>
     </div>
