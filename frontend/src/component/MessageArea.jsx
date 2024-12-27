@@ -1,25 +1,47 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SendHorizontal } from "lucide-react";
-import { io } from "socket.io-client";
 import dayjs from "dayjs";
 import { useSocket } from "../context/SocketContext";
+import { useRoomContext } from "../context/RoomsContext";
 
 function MessageArea() {
   const [userMessage, setUserMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState({});
+  const {
+    activeRooms,
+    setActiveRooms,
+    currentRoom,
+    setCurrentRoom,
+    setOnlineUser,
+  } = useRoomContext();
   const inputRef = useRef();
   const { socketRef } = useSocket();
+
   useEffect(() => {
+    socketRef.current.emit("joinRoom", currentRoom);
     socketRef.current.on("chat_message", (message) => {
       console.log(message);
-      console.log(socketRef.current.id);
-      setMessages((prevMessages) => [...prevMessages, message]);
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        [message.roomId]: [...(prevMessages[message.roomId] || []), message],
+      }));
     });
-  }, []);
+
+    socketRef.current.on("activeRooms", (rooms) => {
+      setActiveRooms(rooms);
+    });
+
+    // Cleanup function to remove event listeners when component unmounts or currentRoom changes
+    return () => {
+      socketRef.current.off("chat_message");
+      socketRef.current.off("connectedSockets");
+      socketRef.current.off("activeRooms");
+    };
+  }, [currentRoom, socketRef, setActiveRooms, setOnlineUser]);
 
   useEffect(() => {
     inputRef.current.focus();
-  }, []);
+  }, [currentRoom]);
 
   const handleMessageSend = (e) => {
     const currentTime = dayjs().format("YYYY-MM-DD HH:mm:ss");
@@ -32,8 +54,9 @@ function MessageArea() {
       userId: socketRef.current.id,
       username: socketRef.current.id, // Replace with actual username
       time: currentTime,
-      roomId: "general",
+      roomId: currentRoom,
     };
+    console.log(userSentMessage);
     socketRef.current.emit("userMessage", userSentMessage);
     setUserMessage("");
     inputRef.current.focus();
@@ -53,7 +76,7 @@ function MessageArea() {
 
       {/* main chat inbox part */}
       <div className="flex-grow overflow-y-auto">
-        {messages.map((msg, index) => (
+        {(messages[currentRoom] || []).map((msg, index) => (
           <div key={index} className="p-2 border-b">
             <h1 className="font-semibold text-neutral-600">{msg.username}</h1>
             {msg.content}
@@ -61,7 +84,7 @@ function MessageArea() {
         ))}
       </div>
 
-      {/* input area */}
+      {/* input area sending the messages*/}
       <div className="flex items-center border-t p-2">
         <input
           type="text"
