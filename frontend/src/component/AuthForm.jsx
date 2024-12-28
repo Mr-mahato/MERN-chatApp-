@@ -4,21 +4,52 @@ import { auth } from "../config/Firebase";
 import { CircleAlert } from "lucide-react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useAuth } from "../context/AuthContext";
+import axios from "axios";
 
 function AuthForm({ mode }) {
-  const [user, setUser] = useState({});
+  const [userDetail, setUserDetail] = useState({});
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const googleProvider = new GoogleAuthProvider();
 
-  const { userHC, setUserHC } = useAuth();
+  const { setUser, setIsAuthenticated } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle email/password authentication here
-    setUserHC(user);
-    navigate("/chat");
-    console.log(userHC);
+    if (mode == "login") {
+      console.log(userDetail);
+      try {
+        const { data } = await axios.post(
+          "http://localhost:3001/api/v1/login",
+          userDetail
+        );
+        console.log(data);
+        setUser(data.user);
+        setIsAuthenticated(true);
+        if (data) {
+          navigate("/chat");
+        }
+      } catch (error) {
+        alert("You got error something wrong");
+        console.log("Error found:", error);
+      }
+    } else if (mode == "signup") {
+      console.log(userDetail);
+      try {
+        const { data } = await axios.post(
+          "http://localhost:3001/api/v1/register",
+          userDetail
+        );
+        console.log(data);
+        setUser(data.user);
+        setIsAuthenticated(true);
+        navigate("/chat");
+      } catch (error) {
+        alert("You got error something wrong");
+
+        console.log(error);
+      }
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -43,15 +74,18 @@ function AuthForm({ mode }) {
               </label>
               <br />
               <input
-                id="fullname"
-                name="fullname"
+                id="username"
+                name="username"
                 placeholder="Enter your name"
                 type="text"
                 autoComplete="name"
                 required
-                value={user.fullname}
+                value={userDetail.username}
                 onChange={(e) => {
-                  setUser({ ...user, [e.target.name]: e.target.value });
+                  setUserDetail({
+                    ...userDetail,
+                    [e.target.name]: e.target.value,
+                  });
                 }}
                 className="border outline-none p-2 w-full rounded-md"
               />
@@ -68,9 +102,9 @@ function AuthForm({ mode }) {
             type="email"
             autoComplete="email"
             required
-            value={user.email}
+            value={userDetail.email}
             onChange={(e) => {
-              setUser({ ...user, [e.target.name]: e.target.value });
+              setUserDetail({ ...userDetail, [e.target.name]: e.target.value });
             }}
             className="border outline-none p-2 w-full rounded-md"
           />
@@ -88,10 +122,10 @@ function AuthForm({ mode }) {
               mode === "login" ? "current-password" : "new-password"
             }
             required
-            value={user.password}
+            value={userDetail.password}
             placeholder="Enter your password"
             onChange={(e) => {
-              setUser({ ...user, [e.target.name]: e.target.value });
+              setUserDetail({ ...userDetail, [e.target.name]: e.target.value });
             }}
             className="border outline-none p-2 w-full rounded-md"
           />

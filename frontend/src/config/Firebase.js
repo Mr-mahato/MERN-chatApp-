@@ -2,7 +2,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
-// TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
@@ -14,11 +13,11 @@ const firebaseConfig = {
   storageBucket: "letschat-18616.firebasestorage.app",
   messagingSenderId: "922056537242",
   appId: "1:922056537242:web:fde8aceee3b32983cf5b23",
-  measurementId: "G-X7G0VW698E"
+  measurementId: "G-X7G0VW698E",
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-export {auth}
+export { auth };

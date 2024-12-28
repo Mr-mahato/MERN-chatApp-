@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
 import { useRoomContext } from "../context/RoomsContext";
+import { useAuth } from "../context/AuthContext";
 function ChatSidebar() {
   const [searchUser, setSearchUser] = useState("");
+  const { user } = useAuth();
   const {
     setActiveRooms,
     activeRooms,
@@ -11,19 +13,29 @@ function ChatSidebar() {
     currentRoom,
     onlineUser,
     setOnlineUser,
+    isChannel,
+    setIsChannel,
+    receiverSocketId,
+    setReceiverSocketId,
   } = useRoomContext();
   const { socketRef } = useSocket();
 
   useEffect(() => {
-    socketRef.current.on("connectedSockets", (connectedSockets) => {
-      setOnlineUser(connectedSockets);
+    socketRef.current.on("online users", (users) => {
+      console.log(users);
+      setOnlineUser(users);
     });
   }, [socketRef, setOnlineUser]);
 
   // adding room to the socket rooms
   const addRoom = () => {
     const roomName = Math.floor(Math.random() * 100) + " getalone";
-    socketRef.current.emit("joinRoom", roomName);
+    //  send two thing here roomname and the user who created the room owner
+    const roomDetail = {
+      roomName,
+      owner: user._id,
+    };
+    socketRef.current.emit("joinRoom", roomDetail);
     // if server emit the allRoom then to get all the rooms
   };
   return (
@@ -45,16 +57,20 @@ function ChatSidebar() {
         <h1 className="bg-gray-600 w-full text-center p-2 text-neutral-300 font-semibold rounded-md">
           Rooms
         </h1>
+        {/* selecting particular room and sending the message to that room */}
         {activeRooms.map((val) => {
-          console.log(val);
           return (
             <div
-              onClick={() => setCurrentRoom(val)}
+              key={val.name}
+              onClick={() => {
+                setIsChannel(true);
+                setCurrentRoom(val);
+              }}
               className={`flex cursor-pointer hover:border ${
-                currentRoom == val ? "border border-blue-600" : ""
+                currentRoom.name == val.name ? "border border-blue-600" : ""
               } rounded-md gap-2  w-[90%]  p-4`}
             >
-              <h1 className="font-semibold text-neutral-600">#{val}</h1>
+              <h1 className="font-semibold text-neutral-600">#{val.name}</h1>
             </div>
           );
         })}
@@ -69,15 +85,23 @@ function ChatSidebar() {
         <h1 className="bg-gray-600 w-full text-center p-2 text-neutral-300 font-semibold rounded-md">
           Direct Message
         </h1>
+        {/* this is for sending the direct message */}
         {onlineUser.map((val) => {
-          console.log(val);
           return (
             <div
+              onClick={() => {
+                console.log("Being clicked online user");
+                setReceiverSocketId(val);
+                // setCurrentRoom({});
+                setIsChannel(false);
+              }}
               className={`flex cursor-pointer hover:border ${
-                currentRoom == val ? "border border-blue-600" : ""
+                receiverSocketId.socketId == val.socketId
+                  ? "border border-gray-600"
+                  : ""
               } rounded-md gap-2  w-[90%]  p-4`}
             >
-              <h1 className="font-semibold text-neutral-600">{val}</h1>
+              <h1 className="font-semibold text-neutral-600">{val.username}</h1>
             </div>
           );
         })}

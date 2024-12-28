@@ -11,7 +11,7 @@ export const SocketProvider = ({ children }) => {
     return () => {
       socketRef.current.disconnect();
     };
-  }, []);
+  }, [socketRef]);
 
   return (
     <SocketContext.Provider value={{ socketRef }}>
