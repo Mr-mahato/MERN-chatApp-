@@ -13,7 +13,12 @@ const chatRouter = require("./Routes/ChatFetch.router");
 const directMessageModel = require("./Model/DirectMessageSchema");
 const directMessageRouter = require("./Routes/DirectMessage.router");
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "https://letschatnp.vercel.app"],
+  methods: ["GET", "POST"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 const server = createServer(app);
 app.use(express.json());
 // this is for the authentication
@@ -21,9 +26,13 @@ app.use("/api/v1", authRouter);
 // this is for the chat
 app.use("/api/v1",chatRouter)
 app.use('/api/v1',directMessageRouter);
+
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173" , "https://letschatnp.vercel.app/"],
+    origin: ["http://localhost:5173", "https://letschatnp.vercel.app"],
+    methods: ["GET", "POST"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
   },
 });
 
