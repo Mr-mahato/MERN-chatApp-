@@ -6,7 +6,6 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef();
   useEffect(() => {
     socketRef.current = io("http://localhost:3001");
-    console.log(socketRef.current.id);
 
     return () => {
       socketRef.current.disconnect();

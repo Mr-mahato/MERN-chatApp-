@@ -11,19 +11,19 @@ function AuthForm({ mode }) {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const googleProvider = new GoogleAuthProvider();
+  const [loading, setLoading] = useState(false);
 
   const { setUser, setIsAuthenticated } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (mode == "login") {
-      console.log(userDetail);
       try {
+        setLoading(true);
         const { data } = await axios.post(
           "http://localhost:3001/api/v1/login",
           userDetail
         );
-        console.log(data);
         setUser(data.user);
         setIsAuthenticated(true);
         if (data) {
@@ -32,22 +32,24 @@ function AuthForm({ mode }) {
       } catch (error) {
         alert("You got error something wrong");
         console.log("Error found:", error);
+      } finally {
+        setLoading(false);
       }
     } else if (mode == "signup") {
-      console.log(userDetail);
       try {
+        setLoading(true);
         const { data } = await axios.post(
           "http://localhost:3001/api/v1/register",
           userDetail
         );
-        console.log(data);
         setUser(data.user);
         setIsAuthenticated(true);
         navigate("/chat");
       } catch (error) {
         alert("You got error something wrong");
-
         console.log(error);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -55,7 +57,6 @@ function AuthForm({ mode }) {
   const handleGoogleSignIn = async () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
-      console.log(res);
       navigate("/"); // Redirect to home page or any other page after successful login
     } catch (err) {
       console.error(err);
@@ -136,9 +137,18 @@ function AuthForm({ mode }) {
             <span>{error}</span>
           </div>
         )}
-        <button className="w-full bg-gray-800 text-white p-2 rounded-md active:bg-gray-900">
-          {mode === "login" ? "Sign in" : "Sign up"}
-        </button>
+        <div className=" bg-gray-800 text-white p-2 rounded-md active:bg-gray-900">
+          {loading == false && (
+            <button className="w-full">
+              {mode === "login" ? "Sign in" : "Sign up"}
+            </button>
+          )}
+          {loading && (
+            <div className="flex justify-center items-center">
+              <div className="animate-spin   text-center rounded-full h-5 w-5 border-t-2 border-b-2 border-gray-100"></div>
+            </div>
+          )}
+        </div>
       </form>
 
       <div className="relative">

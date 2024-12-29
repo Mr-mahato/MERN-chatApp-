@@ -8,6 +8,8 @@ export const RoomsContextProvider = ({ children }) => {
     name: "general",
     _id: "676fb38e5b23aee5aee0abb0",
   });
+  const [currentRoomChat , setCurrentRoomChat] = useState([]);
+  const [currentUserChat , setCurrentUserChat] = useState([]);
   const [onlineUser, setOnlineUser] = useState([]);
   const [isChannel, setIsChannel] = useState(true);
   const [receiverSocketId, setReceiverSocketId] = useState("");
@@ -21,6 +23,10 @@ export const RoomsContextProvider = ({ children }) => {
         setCurrentRoom,
         isChannel,
         setIsChannel,
+        currentRoomChat,
+        setCurrentRoomChat,
+        currentUserChat ,
+        setCurrentUserChat,
         onlineUser,
         setOnlineUser,
         receiverSocketId,

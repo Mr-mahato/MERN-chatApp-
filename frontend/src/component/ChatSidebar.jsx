@@ -22,7 +22,6 @@ function ChatSidebar() {
 
   useEffect(() => {
     socketRef.current.on("online users", (users) => {
-      console.log(users);
       setOnlineUser(users);
     });
   }, [socketRef, setOnlineUser]);
@@ -87,10 +86,12 @@ function ChatSidebar() {
         </h1>
         {/* this is for sending the direct message */}
         {onlineUser.map((val) => {
+           if (user._id === val.userId) {
+            return null; // Skip rendering if the user_id equals val.userId
+          }
           return (
             <div
               onClick={() => {
-                console.log("Being clicked online user");
                 setReceiverSocketId(val);
                 // setCurrentRoom({});
                 setIsChannel(false);
@@ -99,7 +100,7 @@ function ChatSidebar() {
                 receiverSocketId.socketId == val.socketId
                   ? "border border-gray-600"
                   : ""
-              } rounded-md gap-2  w-[90%]  p-4`}
+              }  rounded-md gap-2  w-[90%]  p-4`}
             >
               <h1 className="font-semibold text-neutral-600">{val.username}</h1>
             </div>
