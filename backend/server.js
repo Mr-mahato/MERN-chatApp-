@@ -9,11 +9,18 @@ const User = require("./Model/UserSchema");
 const Message = require("./Model/MessageSchema");
 const Room = require("./Model/RoomsSchema");
 const authRouter = require("./Routes/userRegistration");
+const chatRouter = require("./Routes/ChatFetch.router");
+const directMessageModel = require("./Model/DirectMessageSchema");
+const directMessageRouter = require("./Routes/DirectMessage.router");
 const app = express();
 app.use(cors());
 const server = createServer(app);
 app.use(express.json());
+// this is for the authentication
 app.use("/api/v1", authRouter);
+// this is for the chat
+app.use("/api/v1",chatRouter)
+app.use('/api/v1',directMessageRouter);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -33,7 +40,7 @@ io.on("connection", (socket) => {
   socket.on("authenticate", async (userId) => {
     const user = await User.findById(userId); // after getting the user
     if (user) {
-      users.set(user.username, { username: user.username, socketId: socket.id });
+      users.set(user.username, { username: user.username, socketId: socket.id , userId:user._id });
 
       io.emit("online users", Array.from(users.values()));
     } else {
@@ -62,11 +69,9 @@ io.on("connection", (socket) => {
           username: payload.username,
           timestamp: payload.time,
         });
-        // await message.save();
-        io.to(chatName).emit("new message", payload);
+        await message.save();
+        io.to(chatName).emit("new message", {payload,chatName});
       } else {
-        console.log(payload);
-
         // here the chatName is gonna be the socket id of the person who i want to send the messages.
         io.to(chatName).emit("new message", payload);
       }
@@ -77,21 +82,44 @@ io.on("connection", (socket) => {
   });
 
   // sender -> name , receiver->name
-  socket.on("private message", ({ sender, receiver, message }) => {
-    let receiverInfo = users[receiver];
-    console.log(sender , receiver , message)
-    users.forEach((val , ind)=>{
-      if(val.username === receiver){
-        receiverInfo = val;
+  socket.on("private message", async ({ sender, receiver, message , senderName }) => {
+    try {
+      // First save to database
+      const directMessage = new directMessageModel({
+        sender_id: sender,
+        receiver_id: receiver,
+        content: message
+      });
+      await directMessage.save();
+
+      // Then find receiver's socket and emit
+      let receiverInfo = null;
+      users.forEach((val) => {
+        if (val.userId.toString() === receiver) {
+          receiverInfo = val;
+        }
+      });
+
+      if (receiverInfo) {
+        // Emit to receiver
+        io.to(receiverInfo.socketId).emit("private_message", { 
+          sender: senderName, 
+          message,
+          messageId: directMessage._id 
+        });
       }
-    })
-    console.log(receiverInfo);
-    console.log(receiverInfo);
-    if (receiverInfo) {
-      io.to(receiverInfo.socketId).emit("private_message", { sender, message });
+      
+      // Send back to sender
+      socket.emit("private_message", { 
+        sender: senderName, 
+        message,
+        messageId: directMessage._id 
+      });
+
+    } catch (error) {
+      console.error("Error in private message:", error);
+      socket.emit("message_error", { error: "Failed to send private message" });
     }
-    // Send the message back to the sender as well
-    socket.emit("private_message", { sender, message });
   });
 
   // Handle room joining / creation of the room when a particular socket joins the room
@@ -104,6 +132,7 @@ io.on("connection", (socket) => {
       room = new Room({ name: roomName, owner });
       await room.save();
     }
+    console.log("Trying to join the room")
     io.emit("activeRooms", await Room.find().select("name"));
   });
 

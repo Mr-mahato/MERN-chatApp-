@@ -3,7 +3,6 @@ require("dotenv").config();
 const secretKey = process.env.JWT_SECRET;
 // Function to generate a JWT
 const generateToken = (user) => {
-  console.log(user);
 
   const payload = {
     id: user._id,
